@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Advent24": {
+      "commandName": "Project",
+      "commandLineArgs": "1"
+    }
+  }
+}
