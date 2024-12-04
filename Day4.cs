@@ -12,7 +12,6 @@ namespace Advent24
       const string target = "XMAS";
       const string reverse = "SAMX";
       const string insane = "MAS";
-      const string insaneRev = "SAM";
       public static string Solve()
       {
          var content = File.ReadAllText("Day04.txt");
