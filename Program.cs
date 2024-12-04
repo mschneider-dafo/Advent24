@@ -15,6 +15,8 @@ namespace Advent24
          string result = day switch
          {
             1 => Day1.Solve(),
+            2 => Day2.Solve(),
+            3 => Day3.Solve(),
             _ => "Day not implemented",
          };
 
