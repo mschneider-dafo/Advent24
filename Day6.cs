@@ -55,19 +55,17 @@ namespace Advent24
          int count2 = 0;
          int count = map.SelectMany(x => x).Count(x => x == '0');
 
-         for (int i = 0; i < list.Count; i++)
+         Parallel.For(0, list.Count, i =>
          {
-            direct = Direction.UP;
-            pos = orgPos;
-            finished = false;
+            Direction mydirect = Direction.UP;
+            var mypos = orgPos;
+            bool altfinished = false;
             bool broke = false;
             int iterations = 0;
             char[][]? m = list[i];
-            int numberOfAlteredBlocks = m.SelectMany(x => x).Count(c => c == '#');
-            Debug.Assert(numberOfBLocks + 1 == numberOfAlteredBlocks);
             do
             {
-               (pos, direct, finished) = Move(ref m, pos, direct);
+               (mypos, mydirect, altfinished) = Move(ref m, mypos, mydirect);
                iterations++;
                if (iterations > count * 2)
                {
@@ -75,14 +73,13 @@ namespace Advent24
                   break;
                }
 
-            } while (!finished);
+            } while (!altfinished);
 
             if (broke)
             {
-               count2++;
+               Interlocked.Increment(ref count2);
             }
-         }
-
+         });
 
          return $"Visited Positions {count}, AltCount {count2}";
       }
