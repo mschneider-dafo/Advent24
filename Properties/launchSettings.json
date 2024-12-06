@@ -2,7 +2,7 @@
   "profiles": {
     "Advent24": {
       "commandName": "Project",
-      "commandLineArgs": "5"
+      "commandLineArgs": "6"
     }
   }
 }

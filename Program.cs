@@ -19,6 +19,7 @@ namespace Advent24
             3 => Day3.Solve(),
             4 => Day4.Solve(),
             5 => Day5.Solve(),
+            6 => Day6.Solve(),
             _ => "Day not implemented",
          };
 
