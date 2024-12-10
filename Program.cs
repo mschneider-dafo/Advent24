@@ -1,17 +1,37 @@
-﻿using System.Diagnostics;
+﻿using AdventOfCodeLibrary;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace Advent24
 {
    internal class Program
    {
-      static void Main(string[] args)
+      static async Task Main(string[] args)
       {
          if (!int.TryParse(args[0], CultureInfo.InvariantCulture, out int day))
          {
             Console.WriteLine("Not a valid day");
             return;
          }
+         string sessionToken = "";
+
+         if (args.Length == 2)
+         {
+            sessionToken = args[1];
+         }
+         else
+         {
+            sessionToken = File.ReadAllText("Secrets.txt").Trim();
+         }
+
+         if (!File.Exists($"Day{day:D2}.txt"))
+         {
+            var fContent = await Downloader.DownloadInput(2024, day, sessionToken);
+
+            File.WriteAllText($"Day{day:D2}.txt", fContent);
+
+         }
+
          var tStamp = Stopwatch.GetTimestamp();
          string result = day switch
          {
@@ -24,6 +44,7 @@ namespace Advent24
             7 => Day7.Solve(),
             8 => Day8.Solve(),
             9 => Day9.Solve(),
+            10 => Day10.Solve(),
             _ => "Day not implemented",
          };
 
