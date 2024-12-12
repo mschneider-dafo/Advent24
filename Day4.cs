@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AdventOfCodeLibrary;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace Advent24
       {
          var content = File.ReadAllText("Day04.txt");
 
-         char[][] array = content.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(x => x.ToCharArray()).ToArray();
+         char[][] array = content.ToCharMap();
 
 
          var x = array[0].Length;
