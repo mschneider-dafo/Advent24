@@ -1,6 +1,7 @@
 ﻿using AdventOfCodeLibrary;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Advent24;
 
@@ -18,7 +19,7 @@ internal static class Day12
 
       int[] borderCount = CountBorders(regions);
 
-      int[] discountBorderCount = CountDiscordBorders(regions);
+      int[] discountBorderCount = CountDiscountBorders(regions);
 
       Debug.Assert(borderCount.Length == regions.Count);
 
@@ -38,67 +39,117 @@ internal static class Day12
       return $"Price: {price.Sum()}, Discounted: {discounts.Sum(x => x.Item1)}";
    }
 
-   private static int[] CountDiscordBorders(List<(List<(int y, int x)>, char)> regions)
+   private static int[] CountDiscountBorders(List<(List<(int y, int x)>, char)> regions)
    {
       int[] result = new int[regions.Count];
 
       for (int i = 0; i < regions.Count; i++)
       {
-         var current = regions[i].Item1;
-         int count = 0;
-         List<(int y, int x)> horizontalTop = new(regions.Count);
-         List<(int y, int x)> horizontalBottom = new(regions.Count);
-         List<(int y, int x)> verticalLeft = new(regions.Count);
-         List<(int y, int x)> verticalRight = new(regions.Count);
+         var current = CollectionsMarshal.AsSpan(regions[i].Item1);
 
+         Dictionary<int, List<int>> horizontalTop = new(regions.Count);
+         Dictionary<int, List<int>> horizontalBottom = new(regions.Count);
+         Dictionary<int, List<int>> verticalLeft = new(regions.Count);
+         Dictionary<int, List<int>> verticalRight = new(regions.Count);
 
-         foreach (var item in current)
+         for (int j = 0; j < current.Length; j++)
          {
-            if (!current.Any(x => x.x == item.x && x.y - item.y == 1))
+            bool top = true, bot = true, left = true, right = true;
+            (int y, int x) item = current[j];
+
+            for (int k = 0; k < current.Length; k++)
             {
-               if (!horizontalBottom.Any(x => x.y == item.y && Math.Abs(x.x - item.x) == 1))
-                  count++;
+               if (k == j)
+                  continue;
 
-               if (horizontalBottom.Where(x => x.y == item.y && Math.Abs(x.x - item.x) == 1).Count() == 2)
-                  count--;
+               (int y, int x) other = current[k];
 
-               horizontalBottom.Add(item);
+               if (item.y == other.y && item.x - other.x == 1)
+               {
+                  left = false;
+               }
+
+               if (item.y == other.y && item.x - other.x == -1)
+               {
+                  right = false;
+               }
+
+               if (item.x == other.x && item.y - other.y == 1)
+               {
+                  top = false;
+               }
+
+               if (item.x == other.x && item.y - other.y == -1)
+               {
+                  bot = false;
+               }
             }
-            if (!current.Any(x => x.x == item.x && x.y - item.y == -1))
+
+            if (top)
             {
-               if (!horizontalTop.Any(x => x.y == item.y && Math.Abs(x.x - item.x) == 1))
-                  count++;
-
-               if (horizontalTop.Where(x => x.y == item.y && Math.Abs(x.x - item.x) == 1).Count() == 2)
-                  count--;
-
-               horizontalTop.Add(item);
+               if (!horizontalTop.TryGetValue(item.y, out var list))
+               {
+                  list = new();
+                  horizontalTop.Add(item.y, list);
+               }
+               list.Add(item.x);
             }
-            if (!current.Any(x => x.y == item.y && x.x - item.x == 1))
+            if (bot)
             {
-               if (!verticalLeft.Any(x => x.x == item.x && Math.Abs(x.y - item.y) == 1))
-                  count++;
-
-               if (verticalLeft.Where(x => x.x == item.x && Math.Abs(x.y - item.y) == 1).Count() == 2)
-                  count--;
-
-               verticalLeft.Add(item);
+               if (!horizontalBottom.TryGetValue(item.y, out var list))
+               {
+                  list = new();
+                  horizontalBottom.Add(item.y, list);
+               }
+               list.Add(item.x);
             }
-            if (!current.Any(x => x.y == item.y && x.x - item.x == -1))
+            if (left)
             {
-               if (!verticalRight.Any(x => x.x == item.x && Math.Abs(x.y - item.y) == 1))
-                  count++;
-
-               if (verticalRight.Where(x => x.x == item.x && Math.Abs(x.y - item.y) == 1).Count() == 2)
-                  count--;
-
-               verticalRight.Add(item);
+               if (!verticalLeft.TryGetValue(item.x, out var list))
+               {
+                  list = new();
+                  verticalLeft.Add(item.x, list);
+               }
+               list.Add(item.y);
+            }
+            if (right)
+            {
+               if (!verticalRight.TryGetValue(item.x, out var list))
+               {
+                  list = new();
+                  verticalRight.Add(item.x, list);
+               }
+               list.Add(item.y);
             }
          }
 
-         result[i] = count;
+         result[i] += CountLines(horizontalTop);
+         result[i] += CountLines(horizontalBottom);
+         result[i] += CountLines(verticalLeft);
+         result[i] += CountLines(verticalRight);
       }
 
+      return result;
+   }
+
+   private static int CountLines(Dictionary<int, List<int>> dict)
+   {
+      int result = 0;
+
+      foreach (var item in dict)
+      {
+         var list = item.Value;
+         list.Sort();
+         int count = 1;
+         for (int i = 1; i < list.Count; i++)
+         {
+            if (list[i] - list[i - 1] is > 1)
+            {
+               count++;
+            }
+         }
+         result += count;
+      }
       return result;
    }
 
@@ -108,27 +159,40 @@ internal static class Day12
 
       for (int i = 0; i < regions.Count; i++)
       {
-         var current = regions[i].Item1;
+         var current = CollectionsMarshal.AsSpan(regions[i].Item1);
          int count = 0;
 
-         foreach (var item in current)
+         for (int j = 0; j < current.Length; j++)
          {
-            if (!current.Any(x => x.x == item.x && x.y - item.y == 1))
+            bool top = true, bot = true, left = true, right = true;
+            (int y, int x) item = current[j];
+
+            for (int k = 0; k < current.Length; k++)
             {
-               count++;
+               (int y, int x) other = current[k];
+
+               if (item.y == other.y && item.x - other.x == 1)
+                  right = false;
+
+               if (item.y == other.y && item.x - other.x == -1)
+                  left = false;
+
+               if (item.x == other.x && item.y - other.y == 1)
+                  bot = false;
+
+               if (item.x == other.x && item.y - other.y == -1)
+                  top = false;
             }
-            if (!current.Any(x => x.x == item.x && x.y - item.y == -1))
-            {
+
+            if (top)
                count++;
-            }
-            if (!current.Any(x => x.y == item.y && x.x - item.x == 1))
-            {
+            if (bot)
                count++;
-            }
-            if (!current.Any(x => x.y == item.y && x.x - item.x == -1))
-            {
+            if (left)
                count++;
-            }
+            if (right)
+               count++;
+
          }
 
          result[i] = count;
@@ -191,7 +255,7 @@ internal static class Day12
 
          for (int k = 0; k < result.Count; k++)
          {
-            var list = result[k];
+            var list = CollectionsMarshal.AsSpan(result[k]);
             if (CheckEuclideanDistance(cur, list))
             {
                fIdx = k;
@@ -227,12 +291,19 @@ internal static class Day12
          for (int i = 1; i < iter.Count; i++)
          {
             found = false;
-            var toCheck = iter[i];
+            var toCheck = CollectionsMarshal.AsSpan(iter[i]);
 
             for (int j = 0; j < result.Count; j++)
             {
                var cur = result[j];
-               if (cur.Any(x => CheckEuclideanDistance(x, toCheck)))
+
+               bool escapeCheck = false;
+               for (int k = 0; !escapeCheck && k < cur.Count; k++)
+               {
+                  escapeCheck |= CheckEuclideanDistance(cur[k], toCheck);
+               }
+
+               if (escapeCheck)
                {
                   cur.AddRange(toCheck);
                   cont = true;
@@ -242,7 +313,7 @@ internal static class Day12
             }
             if (!found)
             {
-               result.Add(toCheck);
+               result.Add(iter[i]);
             }
          }
 
@@ -270,9 +341,19 @@ internal static class Day12
    }
 
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-   private static bool CheckEuclideanDistance((int y, int x) cur, List<(int y, int x)> list)
+   private static bool CheckEuclideanDistance((int y, int x) cur, Span<(int y, int x)> list)
    {
-      return list.Any(x => Math.Abs(x.y - cur.y) + Math.Abs(x.x - cur.x) <= 1);
+      for (int i = 0; i < list.Length; i++)
+      {
+         var ydist = list[i].y - cur.y;
+         var xdist = list[i].x - cur.x;
+
+         if (ydist * ydist + xdist * xdist == 1)
+         {
+            return true;
+         }
+      }
+      return false;
    }
 }
 
