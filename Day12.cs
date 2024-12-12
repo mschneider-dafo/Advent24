@@ -1,12 +1,6 @@
 ﻿using AdventOfCodeLibrary;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Dynamic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Advent24;
 
@@ -20,7 +14,7 @@ internal static class Day12
 
       Debug.Assert(map.IsSquare());
 
-      List<(List<(int, int)>, char)> regions = FindContiguousRegions(map);
+      List<(List<(int, int)>, char)> regions = FindRegionsBasedOnChar(map);
 
       int[] borderCount = CountBorders(regions);
 
@@ -143,7 +137,7 @@ internal static class Day12
       return result;
    }
 
-   private static List<(List<(int, int)>, char)> FindContiguousRegions(char[][] map)
+   private static List<(List<(int, int)>, char)> FindRegionsBasedOnChar(char[][] map)
    {
       var chars = map.SelectMany(x => x).Distinct();
       var l = map.Length * map[0].Length;
