@@ -18,39 +18,6 @@ internal static class Day15
    {
       var content = File.ReadAllText("Day15.txt");
 
-      content = @"##########
-#..O..O.O#
-#......O.#
-#.OO..O.O#
-#..O@..O.#
-#O#..O...#
-#O..O..O.#
-#.OO.O.OO#
-#....O...#
-##########
-
-<vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^
-vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
-><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<
-<<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^
-^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><
-^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^
->^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
-<><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
-^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
-v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
-
-      content = @"#######
-#...#.#
-#.....#
-#..OO@#
-#..O..#
-#.....#
-#######
-
-<vv<<^^<<^^
-";
-
       var segments = content.Split(Environment.NewLine + Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
       var map = segments[0].ToCharMap();
@@ -82,31 +49,7 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
 
    private static void Move(this HashSet<((int, int), (int, int))> val, Direction dir, (int, int) target)
    {
-      ((int, int), (int, int)) item = default;
 
-      foreach (var elem in val)
-      {
-         if (elem.Item1 == target || elem.Item2 == target)
-         {
-            item = elem;
-
-         }
-      }
-      if(item == default)
-      {
-         return;
-      }
-      val.Remove(item);
-
-      item = dir switch
-      {
-         Direction.Up => ((item.Item1.Item1 - 1, item.Item1.Item2), (item.Item2.Item1 - 1, item.Item2.Item2)),
-         Direction.Down => ((item.Item1.Item1 + 1, item.Item1.Item2), (item.Item2.Item1 + 1, item.Item2.Item2)),
-         Direction.Left => ((item.Item1.Item1, item.Item1.Item2 - 1), (item.Item2.Item1, item.Item2.Item2 - 1)),
-         Direction.Right => ((item.Item1.Item1, item.Item1.Item2 + 1), (item.Item2.Item1, item.Item2.Item2 + 1)),
-         _ => throw new Exception("Invalid direction")
-      };
-      val.Add(item);
    }
    private static bool Contains(this HashSet<((int, int), (int, int))> val, (int, int) item)
    {
@@ -115,6 +58,75 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
          if (elem.Item1 == item || elem.Item2 == item)
             return true;
       }
+      return false;
+   }
+
+   private static bool MoveWideInternal(((int, int), (int, int)) toMove, Direction dir, HashSet<((int, int) left, (int, int) right)> boxes, HashSet<(int, int)> walls)
+   {
+      if (walls.Contains(toMove.Item1) || walls.Contains(toMove.Item2))
+      {
+         return true;
+      }
+
+      var target = dir switch
+      {
+         Direction.Up => ((toMove.Item1.Item1 - 1, toMove.Item1.Item2), (toMove.Item2.Item1 - 1, toMove.Item2.Item2)),
+         Direction.Down => ((toMove.Item1.Item1 + 1, toMove.Item1.Item2), (toMove.Item2.Item1 + 1, toMove.Item2.Item2)),
+         Direction.Left => ((toMove.Item1.Item1, toMove.Item1.Item2 - 1), (toMove.Item2.Item1, toMove.Item2.Item2 - 1)),
+         Direction.Right => ((toMove.Item1.Item1, toMove.Item1.Item2 + 1), (toMove.Item2.Item1, toMove.Item2.Item2 + 1)),
+         _ => throw new Exception("Invalid direction")
+      };
+
+      if (walls.Contains(target.Item1) || walls.Contains(target.Item2))
+      {
+         return true;
+      }
+
+      boxes.Remove(toMove);
+
+      if (boxes.Contains(target))
+      {
+         var hitWall = MoveWideInternal(target, dir, boxes, walls);
+         if (hitWall)
+         {
+            boxes.Add(toMove);
+            return true;
+         }
+         else
+         {
+            boxes.Add(target);
+            return false;
+         }
+      }
+
+      if (boxes.Contains(target.Item1) || boxes.Contains(target.Item2))
+      {
+         ((int, int) left, (int, int) right)[] elems = boxes.Where(x => x.left == target.Item1 || x.right == target.Item1 || x.left == target.Item2 || x.right == target.Item2).ToArray();
+         var copyOfHash = new HashSet<((int, int), (int, int))>(boxes);
+         bool hitWall = false;
+         foreach (var element in elems)
+         {
+            hitWall |= MoveWideInternal(element, dir, boxes, walls);
+         }
+
+         if (hitWall)
+         {
+            boxes.Clear();
+            foreach(var val in copyOfHash)
+            {
+               boxes.Add(val);
+            }
+            boxes.Add(toMove);
+            return true;
+         }
+         else
+         {
+            boxes.Add(target);
+            return false;
+         }
+      }
+
+      boxes.Add(target);
       return false;
    }
 
@@ -128,26 +140,23 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
          Direction.Right => (toMove.Item1, toMove.Item2 + 1),
          _ => throw new Exception("Invalid direction")
       };
-
       if (walls.Contains(target))
          return (toMove, true);
+      if (!boxes.Contains(target))
+         return (target, false);
 
-      if (boxes.Contains(target))
+      var box = boxes.First(x => x.left == target || x.right == target);
+
+      var hitWall = MoveWideInternal(box, dir, boxes, walls);
+
+      if (hitWall)
       {
-         ((int, int) newPos, bool hitWall) temp = MoveWide(target, dir, boxes, walls);
-
-         if (temp.hitWall)
-         {
-            return (toMove, true);
-         }
-         else
-         {
-            boxes.Move(dir, target);
-            return (target, false);
-         }
+         return (toMove, true);
       }
-
-      return (target, false);
+      else
+      {
+         return (target, false);
+      }
    }
 
    private static long ScoreBoxes(HashSet<(int, int)> boxes)
