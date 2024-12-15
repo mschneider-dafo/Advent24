@@ -8,7 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AdventOfCodeLibrary\AdventOfCodeLibrary.csproj" />
+    <Compile Remove="AdventOfCodeLibrary\**" />
+    <EmbeddedResource Remove="AdventOfCodeLibrary\**" />
+    <None Remove="AdventOfCodeLibrary\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="AdventOfCodeLibrary\AdventOfCodeLibrary.csproj" />
   </ItemGroup>
 
   <ItemGroup>
