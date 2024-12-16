@@ -14,6 +14,21 @@ namespace AdventOfCodeLibrary
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public static string[] ToLines(this string input) => input.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public static (int y,int x) FindLocation(this char[][] map, char target)
+      {
+         for (int y = 0; y < map.Length; y++)
+         {
+            for (int x = 0; x < map[y].Length; x++)
+            {
+               if (map[y][x] == target)
+                  return (y, x);
+            }
+         }
+
+         return (-1, -1);
+      }
+
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public static bool SquareAssumption(char[][] map) => map.Length == 0 || (map.All(x => x.Length == map[0].Length) && map.Length == map[0].Length);
