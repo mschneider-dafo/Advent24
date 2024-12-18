@@ -92,16 +92,20 @@ Program: 0,3,5,4,3,0";
          {
             for (int i = 0; i < 8; i++)
             {
-               //Shift item by 3 bits to the left and add i
+               //Shift item by 3 bits to the left and add i, this creates an A value
                var valToTest = (item << 3) + i;
-               //Get the operands
-               long operand = i;
+               //Get the 3 last bits of A
+               long Alow = i;
                //xOr with 3
-               operand ^= 3;
-               var c = valToTest >> (int)operand;
-               operand = operand ^ c;
-               operand = operand ^ 5;
-               if (output[0] == (operand & 7))
+               Alow ^= 3;
+               //Shift right by the value of the last 3 bits of A
+               var c = valToTest >> (int)Alow;
+               //Xor with c
+               Alow = Alow ^ c;
+               //Xor with 5
+               Alow = Alow ^ 5;
+
+               if (output[0] == (Alow & 7))
                {
                   yield return valToTest;
                }

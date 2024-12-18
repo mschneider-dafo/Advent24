@@ -24,12 +24,11 @@ namespace Advent24
             sessionToken = File.ReadAllText("Secrets.txt").Trim();
          }
 
-         if (!File.Exists($"Day{day:D2}.txt"))
+         if (!File.Exists(string.Format(CultureInfo.InvariantCulture, "Day{0}.txt", day.ToString("D2"))))
          {
             var fContent = await Downloader.DownloadInput(2024, day, sessionToken);
 
             File.WriteAllText($"Day{day:D2}.txt", fContent);
-
          }
 
          var tStamp = Stopwatch.GetTimestamp();
@@ -52,6 +51,7 @@ namespace Advent24
             15 => Day15.Solve(),
             16 => Day16.Solve(),
             17 => Day17.Solve(),
+            18 => Day18.Solve(),
             _ => "Day not implemented",
          };
 
