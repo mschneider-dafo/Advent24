@@ -18,18 +18,6 @@ namespace Advent24
       {
          var content = File.ReadAllText("Day19.txt");
 
-         /*
-         content = @"r, wr, b, g, bwu, rb, gb, br
-
-brwrr
-bggr
-gbbr
-rrbgbr
-ubwu
-bwurrg
-brgr
-bbrgwb";
-         */
 
          var segments = content.Split(Environment.NewLine + Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
@@ -39,9 +27,9 @@ bbrgwb";
 
          var lines = segments[1].Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(x => x.ToCharArray()).ToArray();
 
-         long count = 0;
+         ulong count = 0;
 
-         List<long> bag = new();
+         List<ulong> bag = new();
 
          /*
          Parallel.ForEach(lines, (line) =>
@@ -52,16 +40,15 @@ bbrgwb";
 
          for (int i = 0; i < lines.Length; i++)
          {
-            bag.Add(SlowCase(lines[i], availableTowels));
+            count += SlowCase(lines[i], availableTowels);
          }
 
-         count = bag.Sum();
 
 
          return $"Possible towels Part1: {count}";
       }
 
-      private static long SlowCase(Span<char> chars, Towel[] availableTowels)
+      private static ulong SlowCase(Span<char> chars, Towel[] availableTowels)
       {
          List<(int Start, int End)> indices = new();
 
@@ -73,7 +60,7 @@ bbrgwb";
          return HasUniqueCombination(indices, chars.Length);
       }
 
-      private static long HasUniqueCombination(List<(int Start, int End)> indices, int length)
+      private static ulong HasUniqueCombination(List<(int Start, int End)> indices, int length)
       {
          if (indices.All(x => x.End != length))
          {
@@ -84,11 +71,11 @@ bbrgwb";
          {
             return 0;
          }
-         long result = 0;
+         ulong result = 0;
 
          (int Start, int End)[] starts = indices.Where(x => x.Start == 0).ToArray();
 
-         Span<((int, int), int)> sp = stackalloc ((int, int), int)[indices.Count];
+         Span<((int, int), ulong)> sp = stackalloc ((int, int), ulong)[indices.Count];
 
          int idx = 0;
 
@@ -107,9 +94,9 @@ bbrgwb";
          return result;
       }
 
-      private static Dictionary<(int, int), int> numbers = new();
+      private static Dictionary<(int, int), ulong> numbers = new();
 
-      private static long Recursive(List<(int Start, int End)> list, Span<((int start, int end) pos, int count)> start, int length)
+      private static ulong Recursive(List<(int Start, int End)> list, Span<((int start, int end) pos, ulong count)> start, int length)
       {
          if (start.Length == 0)
          {
@@ -133,9 +120,9 @@ bbrgwb";
             }
          }
 
-         ((int Start, int End) Pos, int Count)[] newL = numbers.Select(x => (x.Key, x.Value)).ToArray();
+         ((int Start, int End) Pos, ulong Count)[] newL = numbers.Select(x => (x.Key, x.Value)).ToArray();
 
-         long resHere = 0;
+         ulong resHere = 0;
          foreach (var item in newL.Where(x => x.Pos.End == length))
          {
             resHere += item.Count;
